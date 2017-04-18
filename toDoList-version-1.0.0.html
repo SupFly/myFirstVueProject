@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>ToDo List</title>
+	<meta charset="utf-8">
+	<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.js"></script>
+	<script src="https://cdn.bootcss.com/vue/2.2.6/vue.js"></script>
+	<link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.css" rel="stylesheet">
+	<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.js"></script>
+</head>
+<style type="text/css">
+	body{
+		padding: 20px;
+		background-color: #18ACB3;
+		font-size: 20px;
+	}
+	.finish{
+		text-decoration: line-through;
+	}
+	.span{
+		display: inline;
+	    padding: .2em;
+	    font-weight: bold;
+	    line-height: 1;
+	    text-align: center;
+	    white-space: nowrap;
+	    vertical-align: baseline;
+	    border-radius: .25em;
+	}
+	.span-tag {
+	    display: inline;
+	    font-weight: bold;
+	    padding: .2em;
+	    line-height: 1;
+	    color: #fff;
+	    text-align: center;
+	    white-space: nowrap;
+	    vertical-align: baseline;
+	    border-radius: .25em;
+	}
+	.hidden{
+		display: none;
+	}
+	.color-green{
+		color: green;
+	}
+	.color-yellow{
+		color: orange;
+	}
+	.color-red{
+		color: red;
+	}
+	.label-danger {
+    	background-color: #F28E9D;
+	}
+	.slide-fade-enter-active {
+	  transition: all .3s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+	}
+	.slide-fade-leave-active {
+	  transition: all .3s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+	}
+	.slide-fade-enter, .slide-fade-leave-active {
+	  transform: translateX(10px);
+	  opacity: 0;
+	}
+	.list-background{
+		background-color: #FCFCFC;
+		padding: 20px;
+		border: 1px solid #8D939F;
+		box-shadow: 0 0 5px rgba(25,25,25,.25);
+		border-radius: 7px;
+		margin: 40px;
+	}
+
+</style>
+<body>
+<div id="app">
+	<div class="alert alert-warning alert-dismissible fade in" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+     	<p>how to use:</p>
+		<p>1.input you to-to and click the enter.</p>
+		<p>2.click the to-do items to finish it.</p>
+		<p>3.Hover you mouse on the to-do item,you can see the delete button.</p>
+		<p>4.give me the suggestion,maybe I will improve in the next version!</p>
+    </div>
+	<div class="row">
+		<div class="col-md-3 list-background">
+			<div class="form-group">
+			    <div><label for="myToDo"><h3>Yesterday</h3></label></div>
+			    <input type="text" class="form-control" id="myToDo" placeholder="what to do" v-on:keyup.enter="addNewTodo" disabled>
+		  	</div>
+		  	<div class="checkbox" v-for="(item, index) in yesterdayMyToDo">
+				<label>
+					<input type="checkbox" :checked="item.isFinish" disabled class="hidden">
+					<span v-show="!item.isFinish" class="span glyphicon glyphicon-exclamation-sign color-yellow" aria-hidden="true"></span>
+					<span v-show="item.isFinish" class="span glyphicon glyphicon-ok-sign color-green" aria-hidden="true"></span>
+					<span v-bind:class="{ finish: item.isFinish }">{{item.todo}}</span>
+					<span v-show="item.isFinish" class="label label-danger">Finished</span>
+				</label>
+			</div>
+		</div>
+		<div class="col-md-4 list-background">
+			<div class="form-group">
+			    <label for="myToDo"><h1>Today</h1></label>
+			    <input type="text" class="form-control" id="todayMyToDo" placeholder="what to do" v-on:keyup.enter="addNewTodo('todayMyToDo')" >
+		  	</div>
+		  	<transition-group name="slide-fade" tag="div">
+			  	<div class="checkbox" v-for="(item, index) in todayMyToDo" v-on:mouseover="showOrHideDelete(index,'todayMyToDo','true')" v-on:mouseout="showOrHideDelete(index,'todayMyToDo')" v-bind:key="item.todo">			  	
+					<label>
+						<input type="checkbox" :checked="item.isFinish" v-on:click="finishOrUnfinish(index,'todayMyToDo')" class="hidden">
+						<span v-show="!item.isFinish" class="span glyphicon glyphicon-exclamation-sign color-yellow" aria-hidden="true"></span>
+						<span v-show="item.isFinish" class="span glyphicon glyphicon-ok-sign color-green" aria-hidden="true"></span>
+						<span v-bind:class="{ finish: item.isFinish }" class = "span">{{item.todo}}</span><span v-show="item.isFinish" class="span-tag label-danger">Finished</span>
+					</label>
+					<span v-show="item.isShow">
+						<a v-on:click="deleteToDo(index,'todayMyToDo')"><span class="glyphicon glyphicon-remove color-red" aria-hidden="true"></span></a>
+					</span>
+				</div>
+			</transition-group>
+		</div>
+		<div class="col-md-3 list-background">
+			<div class="form-group">
+			    <label for="myToDo"><h3>Tomorrow</h3></label>
+			    <input type="text" class="form-control" id="tomorrowMyToDo" placeholder="what to do" v-on:keyup.enter="addNewTodo('tomorrowMyToDo')">
+		  	</div>
+		  	<transition-group name="slide-fade" tag="div">
+			  	<div class="checkbox" v-for="(item, index) in tomorrowMyToDo" v-on:mouseover="showOrHideDelete(index,'tomorrowMyToDo','true')" v-on:mouseout="showOrHideDelete(index,'tomorrowMyToDo')" v-bind:key="item.todo">
+					<label>
+						<input type="checkbox" :checked="item.isFinish" v-on:click="finishOrUnfinish(index,'tomorrowMyToDo')" class="hidden">
+						<span v-show="!item.isFinish" class="span glyphicon glyphicon-exclamation-sign color-yellow" aria-hidden="true"></span>
+						<span v-show="item.isFinish" class="span glyphicon glyphicon-ok-sign color-green" aria-hidden="true"></span>
+						<span v-bind:class="{ finish: item.isFinish }" class = "span">{{item.todo}}</span><span v-show="item.isFinish" class="span-tag label-danger">Finished</span>
+						<span v-show="item.isShow">
+							<a v-on:click="deleteToDo(index,'tomorrowMyToDo')"><span class="glyphicon glyphicon-remove color-red" aria-hidden="true"></span></a>
+						</span>
+					</label>
+				</div>
+			</transition-group>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	$(document).ready(function() {
+		var t1 = window.setInterval(function(){
+			window.location.reload(); 
+		},3600000);
+
+		//window.clearInterval(t1);
+	});
+</script>
+<script type="text/javascript">
+	var app = new Vue({
+		el: '#app',
+		data: {
+			tomorrowMyToDo: "",
+			yesterdayMyToDo: "",
+			todayMyToDo: "",
+			today:"",
+			yesterday:"",
+			tomorrow:""
+		},
+		mounted:function(){
+			this.today = new Date().toLocaleDateString().replace(/\//g,"-");
+
+			var yesterday = new Date().getTime() - 86400000;
+			this.yesterday  = new Date(yesterday).toLocaleDateString().replace(/\//g,"-");
+
+			var tomorrow = new Date().getTime() + 86400000;
+			this.tomorrow  = new Date(tomorrow).toLocaleDateString().replace(/\//g,"-");
+
+			this.tomorrowMyToDo = JSON.parse(localStorage.getItem(this.tomorrow));
+			this.yesterdayMyToDo = JSON.parse(localStorage.getItem(this.yesterday));
+			this.todayMyToDo = JSON.parse(localStorage.getItem(this.today));
+
+			console.log(this.today + ":" + localStorage.getItem(this.today));
+			console.log(this.yesterday + ":" + localStorage.getItem(this.yesterday));
+			console.log(this.tomorrow + ":" + localStorage.getItem(this.tomorrow));
+
+		},
+		methods:{
+			addNewTodo:function(value){
+				var newToDo = {};
+				newToDo.todo = $("#"+value).val();
+				newToDo.isFinish = false;
+				if(!this[value]){
+					this[value] = new Array();
+				}
+				this[value].push(newToDo);
+				$("#"+value).val("");
+				if(value == "todayMyToDo"){
+					localStorage.setItem(this.today,JSON.stringify(this[value]));
+				}else{
+					localStorage.setItem(this.tomorrow,JSON.stringify(this[value]));
+				}
+			},
+			finishOrUnfinish:function(index,flag){
+				if(this[flag][index]){
+					this[flag][index].isFinish = !this[flag][index].isFinish;
+					this[flag][index].isShow = false;
+					if(flag == "todayMyToDo"){
+						localStorage.setItem(this.today,JSON.stringify(this[flag]));
+					}else{
+						localStorage.setItem(this.tomorrow,JSON.stringify(this[flag]));
+					}
+				}
+			},
+			showOrHideDelete:function(index,flag,isShow){
+				this.$set(this[flag][index], "isShow", isShow);
+			},
+			deleteToDo:function(index,flag){
+				this[flag].splice(index,1);
+				if(flag == "todayMyToDo"){
+					localStorage.setItem(this.today,JSON.stringify(this[flag]));
+				}else{
+					localStorage.setItem(this.tomorrow,JSON.stringify(this[flag]));
+				}
+			}
+
+		}
+	})
+</script>
+</body>
+</html>
